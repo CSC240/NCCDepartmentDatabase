@@ -1,11 +1,15 @@
 package edu.ncc.nccdepartmentdatabase;
 import android.app.ListActivity;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.Toast;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -19,6 +23,7 @@ public class MainActivity extends ListActivity {
 
     private DepartmentInfoSource datasource;
     private ArrayAdapter<DepartmentEntry> adapter;
+    private boolean done = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,14 +32,6 @@ public class MainActivity extends ListActivity {
 
         datasource = new DepartmentInfoSource(this);
         datasource.open();
-
-        List<DepartmentEntry> values = datasource.getAllDepartments();
-
-        // add departments to the database if it is currently empty
-        if (values.isEmpty())
-        {
-            new ParseURL().execute();
-        }
     }
 
     @Override
@@ -48,13 +45,28 @@ public class MainActivity extends ListActivity {
         DepartmentEntry dept;
         List<DepartmentEntry> values;
         switch (view.getId()) {
-            case R.id.show:
-                values = datasource.getAllDepartments();
-                adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, values);
-                setListAdapter(adapter);
+            case R.id.createdb:
+                new ParseURL().execute();
                 break;
+            case R.id.usedb:
+                done = true;
+                break;
+            case R.id.show:
+                if (done) {
+                    values = datasource.getAllDepartments();
+                    adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, values);
+                    setListAdapter(adapter);
+                    adapter.notifyDataSetChanged();
+                }
+                break;
+            case R.id.query:
+                if (done) {
+                    values = datasource.findDepartments();
+                    adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, values);
+                    setListAdapter(adapter);
+                    adapter.notifyDataSetChanged();
+                }
         }
-        adapter.notifyDataSetChanged();
     }
 
     public void onDestroy()
@@ -102,7 +114,7 @@ public class MainActivity extends ListActivity {
                             // get the department location
                             deptLocation = tds.get(4).text();
 
-                            datasource.addDept(deptName, deptLocation, deptPhone);
+                            datasource.addDept(deptName, deptPhone, deptLocation);
                         }
                         count++;
                     }
@@ -113,11 +125,13 @@ public class MainActivity extends ListActivity {
             return null;
         }
 
-
         @Override
         protected void onPostExecute(String result) {
-            //if you had a ui element, you could display the title
-            Log.d("PARSING", "async task has completed");
+            Toast toast = Toast.makeText(getApplicationContext(),"Database Created!",Toast.LENGTH_SHORT);
+            toast.setGravity(Gravity.CENTER_VERTICAL|Gravity.CENTER_HORIZONTAL, 0, 0);
+            toast.show();
+
+            done = true;
         }
     }
 }

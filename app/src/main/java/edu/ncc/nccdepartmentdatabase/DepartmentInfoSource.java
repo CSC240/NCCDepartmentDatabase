@@ -1,4 +1,5 @@
 package edu.ncc.nccdepartmentdatabase;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -13,10 +14,11 @@ public class DepartmentInfoSource {
     private SQLiteDatabase database;
     private DepartmentInfoHelper deptHelper;
 
-    private String[] allColumns = { DepartmentInfoHelper._ID, DepartmentInfoHelper.NAME, DepartmentInfoHelper.LOCATION,
-            DepartmentInfoHelper.PHONE, };
+    private String[] allColumns = {DepartmentInfoHelper._ID, DepartmentInfoHelper.NAME,
+            DepartmentInfoHelper.LOCATION, DepartmentInfoHelper.PHONE,};
 
-    public DepartmentInfoSource(Context context) {
+    public DepartmentInfoSource(Context context)
+    {
         deptHelper = new DepartmentInfoHelper(context);
     }
 
@@ -24,28 +26,19 @@ public class DepartmentInfoSource {
         database = deptHelper.getWritableDatabase();
     }
 
-    public void close() {
+    public void close()
+    {
         deptHelper.close();
     }
 
-    public DepartmentEntry addDept(String name, String location, String phone) {
+    public void addDept(String name, String phone, String location) {
         ContentValues values = new ContentValues();
+
         values.put(DepartmentInfoHelper.NAME, name);
         values.put(DepartmentInfoHelper.LOCATION, location);
         values.put(DepartmentInfoHelper.PHONE, phone);
-        long insertId = database.insert(DepartmentInfoHelper.TABLE_NAME, null, values);
-        Cursor cursor = database.query(DepartmentInfoHelper.TABLE_NAME, allColumns, DepartmentInfoHelper._ID + " = " +insertId, null, null, null, null);
-        cursor.moveToFirst();
-        DepartmentEntry entry = cursorToEntry(cursor);
-        cursor.close();
-        return entry;
-    }
 
-    public void deleteDept(DepartmentEntry dept) {
-        long id = dept.getId();
-        System.out.println("Comment deleted with id: " + id);
-        database.delete(DepartmentInfoHelper.TABLE_NAME, DepartmentInfoHelper._ID
-                + " = " + id, null);
+        long insertId = database.insert(DepartmentInfoHelper.TABLE_NAME, null, values);
     }
 
     public List<DepartmentEntry> getAllDepartments() {
@@ -61,6 +54,24 @@ public class DepartmentInfoSource {
             cursor.moveToNext();
         }
         cursor.close();
+
+        return dpts;
+    }
+
+    public List<DepartmentEntry> findDepartments() {
+        List<DepartmentEntry> dpts = new ArrayList<>();
+        DepartmentEntry entry;
+        Cursor cursor = database.query(DepartmentInfoHelper.TABLE_NAME,
+                allColumns, null, null, null, null, null);
+
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            entry = cursorToEntry(cursor);
+            dpts.add(entry);
+            cursor.moveToNext();
+        }
+        cursor.close();
+
         return dpts;
     }
 

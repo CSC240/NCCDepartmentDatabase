@@ -57,7 +57,7 @@ public class DepartmentEntry {
     // Will be used by the ArrayAdapter in the ListView
     @Override
     public String toString() {
-        return id + ": " + name + " - " + location + " - " + phone;
+        return id + ": " + name + " - " + phone + " - " + location;
     }
 }
 
